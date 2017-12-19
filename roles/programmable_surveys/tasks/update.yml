@@ -1,5 +1,5 @@
 - name: Evaluate dynamic survey generator
-  include: "{{item.source}}"
+  include_tasks: "{{item.source}}"
   vars:
     parameters: "{{item.parameters}}"
     variable: "{{item.variable}}"
