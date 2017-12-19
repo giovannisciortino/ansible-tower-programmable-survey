@@ -1,0 +1,6 @@
+---
+# tasks file for programmable_surveys
+- name: Check programmable survey prerequsites
+  include: check_prerequisites.yml
+- name: Update programmable survey prerequsites
+  include: update.yml

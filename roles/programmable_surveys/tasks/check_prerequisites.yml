@@ -1,0 +1,21 @@
+- name: Check tower-cli is installed
+  stat:
+    path: "{{tower_cli_path}}"
+  register: tower_cli_file
+
+- name: Fail if tower-cli script isn't installed
+  fail:
+    msg: "The tower-cli hasn't been found on {{tower_cli_path}}"
+  when: not tower_cli_file.stat.exists
+
+- name: Check tower-cli credential configuration
+  command: '{{tower_cli_path}} job_template list'
+  changed_when: false
+  register: tower_cli_job_template_list
+
+- name: Fail if tower-cli can't retrieve tower-cli job_template list
+  fail:
+    msg: ^ The command {{tower_cli_path}} job_template list returned the
+           error '{{tower_cli_job_template_list.stderr}}'. Check tower-cli
+           credential configuration.
+  when: tower_cli_job_template_list.rc != 0

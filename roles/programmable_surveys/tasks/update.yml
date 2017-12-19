@@ -1,0 +1,10 @@
+- name: Evaluate dynamic survey generator
+  include: "{{item.source}}"
+  vars:
+    parameters: "{{item.parameters}}"
+    variable: "{{item.variable}}"
+  with_items: "{{job_template_survey_variables}}"
+  register: generator_output
+- edit_json:
+    job_template_survey_content: "{{job_template_survey_content}}"
+    host_vars: "{{hostvars['towerlab']}}"
