@@ -1,7 +1,7 @@
 galaxy_info:
   author: Giovani Battista Sciortino
-  description: 
-  company: 
+  description: Replace variable in a json string
+  company:
 
   # If the issue tracker for your role is not on github, uncomment the
   # next line and provide a value

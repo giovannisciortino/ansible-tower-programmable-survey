@@ -4,31 +4,61 @@ tower_cli_path: '/usr/bin/tower-cli'
 job_template_name: 'Example Job Template'
 job_template_survey_content: |
   {
-    "description": "",
-    "spec": [
-      {
-        "required": true,
-        "min": null,
-        "default": "",
-        "max": null,
-        "question_description": "",
-        "choices": "group2\ngroup3aggiuntoDaCli",
-        "new_question": true,
-        "variable": "hosts",
-        "question_name": "Target Hostgroups",
-        "type": "multiselect"
-      }
-    ],
-    "name": ""
-  }
+  "description": "",
+  "name": "",
+  "spec": [
+    {
+      "question_description": "",
+      "min": null,
+      "default": "",
+      "max": null,
+      "required": true,
+      "choices": "",
+      "variable": "hostgroups",
+      "question_name": "Target Hostgroups",
+      "type": "multiselect"
+    },
+    {
+      "question_description": "",
+      "min": null,
+      "default": "",
+      "max": null,
+      "required": true,
+      "choices": "123",
+      "new_question": true,
+      "variable": "hosts",
+      "question_name": "Hosts",
+      "type": "multiselect"
+    },
+    {
+      "question_description": "",
+      "min": null,
+      "default": "",
+      "max": null,
+      "required": true,
+      "choices": "123",
+      "new_question": true,
+      "variable": "userlist",
+      "question_name": "User list",
+      "type": "multiselect"
+    }
 
+  ]
+  }
 
 job_template_survey_variables:
   - target_hostgroups:
-    source: survey_generators/shell_generator.py
+    source: survey_generators/shell_generator.yml
     parameters: "tower-cli group list | awk '{print $2}'|sed -e '1,3d'|sed '$ d'"
-    variable: hosts
+    variable: hostgroups
+    delegate_to: towerlab
   - target_hosts:
-    source: survey_generators/shell_generator.py
+    source: survey_generators/shell_generator.yml
     parameters: "tower-cli host list | awk '{print $2}'|sed -e '1,3d'|sed '$ d'"
     variable: hosts
+    delegate_to: towerlab
+  - target_hosts:
+    source: survey_generators/shell_generator.yml
+    parameters: "cat /etc/passwd |cut -d':' -f1"
+    variable: userlist
+    delegate_to: localhost

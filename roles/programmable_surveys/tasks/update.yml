@@ -3,8 +3,32 @@
   vars:
     parameters: "{{item.parameters}}"
     variable: "{{item.variable}}"
+  delegate_to: "{{item.delegate_to}}"
+  delegate_facts: True
   with_items: "{{job_template_survey_variables}}"
   register: generator_output
-- edit_json:
-    job_template_survey_content: "{{job_template_survey_content}}"
-    host_vars: "{{hostvars['towerlab']}}"
+
+- name: Show spec survey survey_content input variable
+  debug:
+    var: job_template_survey_content
+    verbosity: 1
+
+- name: Show spec survey survey_content input variable
+  debug:
+    var: hostvars['{{inventory_hostname}}']
+    verbosity: 1
+
+- name: Apply dynamic variable to survey template
+  modify_json:
+    # leave the space for this reason https://stackoverflow.com/questions/31969872/why-ansible-always-replaces-double-quotes-with-single-quotes-in-templates
+    survey_content: " {{job_template_survey_content}}"
+    host_vars: "{{ hostvars[inventory_hostname]}}"
+  register: modify_json
+
+- name: Show spec survey result
+  debug:
+    var: modify_json.result
+    verbosity: 1
+
+- name: Update spec survey
+  shell: tower-cli job_template modify '{{job_template_name}}' --survey-spec '{{modify_json.result}}'

@@ -1,5 +1,5 @@
 - name: Update programmable surveys
-  hosts: towerlab
+  hosts: all
   gather_facts: False
   roles:
     - programmable_surveys
