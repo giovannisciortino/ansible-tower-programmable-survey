@@ -1,7 +1,7 @@
 ---
 # defaults file for programmable_surveys
 tower_cli_path: '/usr/bin/tower-cli'
-job_template_name: 'Example Job Template'
+job_template_name: 'Job Template With Dynamic Survey'
 job_template_survey_content: |
   {
   "description": "",
@@ -51,12 +51,12 @@ job_template_survey_variables:
     source: survey_generators/shell_generator.yml
     parameters: "tower-cli group list | awk '{print $2}'|sed -e '1,3d'|sed '$ d'"
     variable: hostgroups
-    delegate_to: towerlab
+    delegate_to: localhost
   - target_hosts:
     source: survey_generators/shell_generator.yml
     parameters: "tower-cli host list | awk '{print $2}'|sed -e '1,3d'|sed '$ d'"
     variable: hosts
-    delegate_to: towerlab
+    delegate_to: localhost
   - target_hosts:
     source: survey_generators/shell_generator.yml
     parameters: "cat /etc/passwd |cut -d':' -f1"
