@@ -34,12 +34,13 @@ id      name      organization
 - A credential defined in Ansible Tower/AWX valid for the Ansible Tower/AWX server
   Example:
 ```
-[root@tower ~]# tower-cli credential get --name 'Demo Credential'
+[root@tower ~]# tower-cli credential get --name="Demo Credential"
 == =============== ===============
 id      name       credential_type
 == =============== ===============
- 1 Demo Credential               1
+ 6 Demo Credential               1
 == =============== ===============
+
 ```
 
 Instruction to configure this playbook on Ansible Tower/AWX:
@@ -142,11 +143,105 @@ id               name               inventory project    playbook
 4. Create a new Job Template in the project 'Programmable Survey' selecting a credential valid for Ansible Tower/AWX server and a inventory including Ansible Tower/AWX server using the playbook 'update_programmable_surveys.yml'
   Example:
 ```
-[root@tower ~]# tower-cli job_template create --name 'Dynamic survey update "Job Template With Dynamic Survey"' --credential 'Demo Credential' --inventory 'Demo Inventory' --project 'Programmable Survey' --playbook 'update_programmable_surveys.yml'
+[root@tower ~]# tower-cli job_template create --name 'Dynamic survey update "Job Template With Dynamic Survey"' --credential 'Demo Credential' --inventory 'Demo Inventory' --project 'Programmable Survey' --playbook 'update_programmable_surveys.yml' --become-enabled true
 Resource changed.
 == ======================================================== ========= ======= ===============================
 id                           name                           inventory project            playbook             
 == ======================================================== ========= ======= ===============================
 20 Dynamic survey update "Job Template With Dynamic Survey"         1      18 update_programmable_surveys.yml
 == ======================================================== ========= ======= ===============================
+```  
+
+5. Define using vars the configuration of the job template 'Dynamic survey update "Job Template With Dynamic Survey"'.
+The value reported in the example below are the default value defined in the role "programmable_surveys". They can replaced with the customization requested in each ansible infrastructure.
+The content of the variable job_template_survey_content is the structure of the job template survey spec; the step 3 of the paragraph "job_template_survey_content" contains the commands to extract it
+The job_template_survey_variables list contains one element for each dynamic survey element of the survey.
+Currently a single generator "survey_generators/shell_generator.yml" has been implemented it allow to use the ansible module shell to generate a list of survey select box values.
+
+
+   Example:
+
+
+```  
+[awx@tower ~]# cat > /tmp/extra_vars.yml << EOF
+tower_cli_path: '/usr/bin/tower-cli'
+job_template_name: 'Job Template With Dynamic Survey'
+job_template_survey_content: |
+  {
+  "description": "",
+  "name": "",
+  "spec": [
+    {
+      "question_description": "",
+      "min": null,
+      "default": "",
+      "max": null,
+      "required": true,
+      "choices": "",
+      "variable": "hostgroups",
+      "question_name": "Target Hostgroups",
+      "type": "multiselect"
+    },
+    {
+      "question_description": "",
+      "min": null,
+      "default": "",
+      "max": null,
+      "required": true,
+      "choices": "123",
+      "new_question": true,
+      "variable": "hosts",
+      "question_name": "Hosts",
+      "type": "multiselect"
+    },
+    {
+      "question_description": "",
+      "min": null,
+      "default": "",
+      "max": null,
+      "required": true,
+      "choices": "123",
+      "new_question": true,
+      "variable": "userlist",
+      "question_name": "User list",
+      "type": "multiselect"
+    }
+
+  ]
+  }
+
+job_template_survey_variables:
+  - target_hostgroups:
+    source: survey_generators/shell_generator.yml
+    parameters: "tower-cli group list | awk '{print $2}'|sed -e '1,3d'|sed '$ d'"
+    variable: hostgroups
+    delegate_to: localhost
+  - target_hosts:
+    source: survey_generators/shell_generator.yml
+    parameters: "tower-cli host list | awk '{print $2}'|sed -e '1,3d'|sed '$ d'"
+    variable: hosts
+    delegate_to: localhost
+  - target_hosts:
+    source: survey_generators/shell_generator.yml
+    parameters: "cat /etc/passwd |cut -d':' -f1"
+    variable: userlist
+    delegate_to: localhost
+EOF
+
+# tower-cli job_template modify --name 'Dynamic survey update "Job Template With Dynamic Survey"' --extra-vars "@/tmp/extra_vars.yml"
+Resource changed.
+== ======================================================== ========= ======= ===============================
+id                           name                           inventory project            playbook             
+== ======================================================== ========= ======= ===============================
+24 Dynamic survey update "Job Template With Dynamic Survey"         1      18 update_programmable_surveys.yml
+== ======================================================== ========= ======= ===============================
+
+```  
+
+
+6. Schedule the execution of the job defined in the step 4.
+   Example:
+
+```  
+[awx@tower ~]# tower-cli schedule create --name="Schedule dynamic survey update" --job-template='Dynamic survey update "Job Template With Dynamic Survey"' --rrule="DTSTART:20171215T000000Z RRULE:FREQ=MINUTELY;INTERVAL=15"
 ```  
